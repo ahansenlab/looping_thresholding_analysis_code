@@ -12,7 +12,7 @@
 clear;
 close all;
 
-rng(100);
+%rng(100);
 
 addpath('mvrandn');
 
@@ -22,11 +22,11 @@ dim = 3;
 
 % Parameters for the Rouse dynamics.
 deltaS = 16;
-D = 289;
+D = 291;
 gamma = 1;
 kappa = 1/17;
-T = 150;
-dt = 2;
+T = 60*60;
+dt = 0.2*60;
 tGrid = 0:dt:T;
 K = length(tGrid);
 
@@ -37,38 +37,45 @@ sigma_loc = sqrt(2)*20;
 rm = CreateRouseModel(tGrid, deltaS, D, gamma, kappa, sigma_loc);
 
 % Defines the vector of proximity intervals in frames.
-winSizeVec = [2:25];
+winSizeVec = [2:2:20];
 
 % Select which proximity intervals should be plotted as examples.
-selWin = [15, 25];
+selWin = [10, 20];
 
 % Define proximity threshold
 alpha = 50;
+M = 1000;
 
 for u=1:length(winSizeVec)
 
     winSize = winSizeVec(u);
-    contactInterval = zeros(size(tGrid));
 
-    kStart = floor(K/2-winSize/2);
-    kEnd = kStart + winSize-1;
-
-    contactInterval(kStart:kEnd)=1;
 
     % Simulates K trajectories with defined proximity duration and
     % calculate posterior distances using Bayesian inference (muPost). X is
     % the true distance and Y is the distance including localization error.
-    [X, Y, muPost] = SimulateProximityCond(tGrid, rm, contactInterval, alpha, 10000, dim);
+    [X, Y, muPost, SigmaPost] = SimulateProximityCond(tGrid, rm, winSize, alpha, M, dim);
+
+    XMat = reshape(X, [3*M, K]);
+    SigmaXEst = cov([X(:, :, 1); X(:, :, 2); X(:, :, 3)]);
 
     % Ground truth (must be the same as the prescribed contact interval by
     % construction).
     dX = max(abs(X), [], 3);
+    dX = sqrt(X(:, :, 1).^2 + X(:, :, 2).^2 + X(:, :, 3).^2);
 
     % Thresholded distance Y.
     dY = max(abs(Y), [], 3);
+    dY = sqrt(Y(:, :, 1).^2 + Y(:, :, 2).^2 + Y(:, :, 3).^2);
 
     % Thresholded posterior distance muPost.
     dmu = max(abs(muPost), [], 3);
+    dmu = sqrt(muPost(:, :, 1).^2 + muPost(:, :, 2).^2 + muPost(:, :, 3).^2);
+
+    %pProximity = chi2cdf(alpha^2, )
+    sigma2Post = repmat(diag(SigmaPost)', M, 1);
+    lambda = dmu.^2 ./ sigma2Post;
+    prob = ncx2cdf(alpha^2 ./ sigma2Post, dim, lambda);
 
     % Extracts inferred proximity intervals.
     [timeI_True, EventTimesTotal_True, ~] = DetectEventTimes(dX<alpha);
@@ -90,21 +97,21 @@ for u=1:length(winSizeVec)
         figure(1)
         subplot(3,length(selWin),winSizeIdx);
         dt = tGrid(2) - tGrid(1);
-        plot(tGrid, dX(1, :), '-', 'Color', [0.5, 0.5, 0.5], 'LineWidth', 1.5); hold on;
-        plot(tGrid, dY(1, :), '.', 'Color', cols(2, :));
-        plot(tGrid, dmu(1, :), '--', 'Color', cols(1, :), 'LineWidth', 1.5);
-        plot(tGrid, alpha*ones(size(tGrid)), '--', 'Color',[0.2, 0.2, 0.2], 'LineWidth', 1.5);
-        ylim([0, 400]);
+        plot(tGrid/60, dX(1, :), '-', 'Color', [0.5, 0.5, 0.5], 'LineWidth', 1.5); hold on;
+        plot(tGrid/60, dY(1, :), '.', 'Color', cols(2, :));
+        plot(tGrid/60, dmu(1, :), '--', 'Color', cols(1, :), 'LineWidth', 1.5);
+        plot(tGrid/60, alpha*ones(size(tGrid)), '--', 'Color',[0.2, 0.2, 0.2], 'LineWidth', 1.5);
+        ylim([0, 500]);
         ylabel('3D Distance');
         subplot(3,length(selWin),1*length(selWin)+winSizeIdx);
-        bar(tGrid+dt/2, dY(1, :)<alpha, 'BarWidth', 1, 'FaceColor', cols(2, :), 'LineStyle','none'); hold on;
-        stairs(tGrid, dX(1, :)<alpha, 'LineWidth', 1.5, 'Color', [0.5, 0.5, 0.5]);
+        bar((tGrid+dt/2)/60, dY(1, :)<alpha, 'BarWidth', 1, 'FaceColor', cols(2, :), 'LineStyle','none'); hold on;
+        stairs(tGrid/60, dX(1, :)<alpha, 'LineWidth', 1.5, 'Color', [0.5, 0.5, 0.5]);
         legend('Inferred Interval', 'True Interval');
         ylabel('Inferred proximity (Threshold)');
         ylim([0, 1.5]);
         subplot(3,length(selWin),2*length(selWin)+winSizeIdx);
-        bar(tGrid+dt/2, dmu(1, :)<alpha, 'BarWidth', 1, 'FaceColor', cols(1, :), 'LineStyle','none'); hold on;
-        stairs(tGrid, dX(1, :)<alpha, 'LineWidth', 1.5, 'Color', [0.5, 0.5, 0.5]);
+        bar((tGrid+dt/2)/60, dmu(1, :)<alpha, 'BarWidth', 1, 'FaceColor', cols(1, :), 'LineStyle','none'); hold on;
+        stairs(tGrid/60, dX(1, :)<alpha, 'LineWidth', 1.5, 'Color', [0.5, 0.5, 0.5]);
         ylabel('Inferred proximity (Bayes)');
         ylim([0, 1.5]);
         xlabel('Time (min)');
@@ -129,12 +136,12 @@ dProbLimit = repmat(pEvent, 1, length(winSizeVec));
 % Plot summary statistics / results
 figure;
 subplot(1,2,1);
-plot(winSizeVec*dt, meanTau_Bayes*dt, '.-', 'Color', cols(1, :), 'LineWidth', 1.5, 'MarkerSize', 12); hold on;
-plot(winSizeVec*dt, meanTau_Threshold*dt, '.-', 'Color', cols(2, :), 'LineWidth', 1.5, 'MarkerSize', 12); hold on;
-plot([0, winSize*dt], [0, winSize*dt], '--', 'LineWidth', 1.5, 'Color', [0.5, 0.5, 0.5]); hold on;
-plot([0, 25*dt], [1, 1]*tau_mri_L2*dt, 'k--', 'LineWidth',1.5);
-xlim([0, 25*dt]);
-ylim([0, 25*dt]);
+plot(winSizeVec*dt/60, meanTau_Bayes*dt/60, '.-', 'Color', cols(1, :), 'LineWidth', 1.5, 'MarkerSize', 12); hold on;
+plot(winSizeVec*dt/60, meanTau_Threshold*dt/60, '.-', 'Color', cols(2, :), 'LineWidth', 1.5, 'MarkerSize', 12); hold on;
+plot([0, winSize*dt/60], [0, winSize*dt/60], '--', 'LineWidth', 1.5, 'Color', [0.5, 0.5, 0.5]); hold on;
+plot([0, max(winSizeVec)*dt]/60, [1, 1]*tau_mri_L2*dt/60, 'k--', 'LineWidth',1.5);
+xlim([0, max(winSizeVec)*dt]/60);
+ylim([0, max(winSizeVec)*dt]/60);
 xlabel('True contact lifetime [min]');
 ylabel('Inferred contact lifetime [min]');
 

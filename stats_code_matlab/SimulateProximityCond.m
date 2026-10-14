@@ -1,4 +1,4 @@
-function [CondX, CondY, muPost] = SimulateProximityCond(tGrid, rm, contactInterval, alpha, N, dim)
+function [CondX, CondY, muPost, SigmaPost] = SimulateProximityCond(tGrid, rm, winSize, alpha, N, dim)
 
 M = 10000;
 sigmaTot = sqrt(rm.acfRouse(0)) + rm.sigma_loc;
@@ -11,8 +11,7 @@ dx = xGrid(2) - xGrid(1);
 
 sigma = sqrt(rm.acfRouse(0));
 
-% Calculate posterior covariance
-SigmaPost = inv(inv(rm.Sigma) + 1/rm.sigma_loc^2 * eye(K));
+
 
 
 normTrunc = ~thrFun(xGrid).*normpdf(xGrid, 0, sigma);
@@ -23,24 +22,35 @@ CondX = zeros(N, K, dim);
 CondY = zeros(N, K, dim);
 muPost = zeros(N, K, dim);
 
-
-contactIdx = find(contactInterval);
-idx = [1, contactIdx, K];
-SigmaCond = rm.Sigma(idx, idx);
-idxComp = setdiff(1:K, idx);
-SigmaX = rm.Sigma(idxComp, idxComp);
-SigmaXY1 = rm.Sigma(idxComp, idx);
-SigmaXY2 = rm.Sigma(idx, idxComp);
-covRatio = SigmaXY1/SigmaCond;
-SigmaXCond = SigmaX - covRatio*SigmaXY2;
+alphaMargin = 0.1;
 
 parfor n=1:N
+
+    contactInterval = zeros(size(tGrid));
+
+    kStart = floor(K/2-winSize/2);
+    kStart = randi([2, K-winSize-1]);
+    kEnd = kStart + winSize-1;
+
+    contactInterval(kStart:kEnd)=1;
+
+    contactIdx = find(contactInterval);
+    idx = [1, contactIdx, K];
+
+    SigmaCond = rm.Sigma(idx, idx);
+    idxComp = setdiff(1:K, idx);
+    SigmaX = rm.Sigma(idxComp, idxComp);
+    SigmaXY1 = rm.Sigma(idxComp, idx);
+    SigmaXY2 = rm.Sigma(idx, idxComp);
+    covRatio = SigmaXY1/SigmaCond;
+    SigmaXCond = SigmaX - covRatio*SigmaXY2;
+
     for u=1:dim
 
         XEnd = randsample(xGrid, 1, true, normTrunc);
         XStart = randsample(xGrid, 1, true, normTrunc);
 
-        lb = -alpha*ones(size(contactIdx));
+        lb = -alpha*ones(size(contactIdx))*alphaMargin;
         ub = -lb;
 
         yContact = mvrandn(lb, ub, rm.Sigma(contactIdx, contactIdx), 1);
@@ -53,18 +63,18 @@ parfor n=1:N
         idxStart = idxComp<contactIdx(1);
         if (XStart<0)
             lb(idxStart) = -inf;
-            ub(idxStart) = -alpha;
+            ub(idxStart) = -alpha*alphaMargin;
         else
-            lb(idxStart) = alpha;
+            lb(idxStart) = alpha*alphaMargin;
             ub(idxStart) = inf;
         end
 
         idxEnd = idxComp>contactIdx(end);
         if (XEnd<0)
             lb(idxEnd) = -inf;
-            ub(idxEnd) = -alpha;
+            ub(idxEnd) = -alpha*alphaMargin;
         else
-            lb(idxEnd) = alpha;
+            lb(idxEnd) = alpha*alphaMargin;
             ub(idxEnd) = inf;
         end
 
@@ -80,8 +90,7 @@ parfor n=1:N
         CondX(n, :, u) = X;
         CondY(n, :, u) = CondX(n, :, u) + rm.sigma_loc*randn(1, K);
 
-        % Calculate posterior mean
-        muPost(n, :, u) = (1/rm.sigma_loc^2*CondY(n, :, u)) * SigmaPost;
+      
     end
 
     if (mod(n, 50) == 1)
@@ -89,3 +98,15 @@ parfor n=1:N
     end
 end
 
+% Calculate posterior covariance
+SigmaXEst = cov([CondX(:, :, 1); CondX(:, :, 2); CondX(:, :, 3)]);
+SigmaPost = inv(inv(SigmaXEst) + 1/rm.sigma_loc^2 * eye(K));
+
+for n=1:N
+
+    for u=1:dim
+          % Calculate posterior mean
+        muPost(n, :, u) = (1/rm.sigma_loc^2*CondY(n, :, u)) * SigmaPost;
+    end
+
+end
