@@ -6,7 +6,7 @@
 % everywhere except inside the considered proximity window, where it is
 % smaller than alpha. We then use Bayesian and simple thresholding to
 % analyze how the inferred proximity durations compare to the true one. The
-% script uses parallelization to simulate 10k trajectories, which should
+% script uses parallelization to simulate 1000 trajectories, which should
 % finish within a few minutes on a laptop / PC.
 
 clear;
