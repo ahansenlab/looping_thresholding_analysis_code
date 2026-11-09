@@ -5,12 +5,13 @@ from tqdm.auto import tqdm
 
 import sys
 from pathlib import Path
-sys.path.append('../')
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # repository root
 from utils import *  # key functions for this project
+from paths import ANALYSIS_DATA_FOLDER  # data locations; see paths.py
 
 THRESHOLD = 50
 
-loop_nums = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8])
+loop_nums = np.array([0, 1, 2, 3, 4, 5])
 noise_levels = np.array([0, 10, 20, 30, 40, 50])
 n_reps = 19 - 10 + 1  # 10..19 inclusive
 
@@ -24,6 +25,6 @@ with tqdm(total=total_iters, desc="probability under threshold", unit="rep") as 
         for noise in noise_levels:
             probs_under_threshold.loc[loop_num, noise] = prob_under_threshold_all_reps(loop_num, noise, non_sticky=False, threshold=THRESHOLD, pbar=pbar)
         
-with open('/mnt/md1/jjusuf/looping_review/analysis_data/probs_under_threshold.csv', mode='w') as f:
+with open(ANALYSIS_DATA_FOLDER / 'probs_under_threshold.csv', mode='w') as f:
     f.write('# Note: columns correspond to different noise levels (provided as sigma_x in nm)\n')
     probs_under_threshold.to_csv(f, float_format="%.6f")

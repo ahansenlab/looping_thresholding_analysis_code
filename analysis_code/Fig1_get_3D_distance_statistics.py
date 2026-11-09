@@ -2,7 +2,7 @@ import numpy as np
 
 import sys
 from pathlib import Path
-sys.path.append('../')
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # repository root
 from utils import *  # key functions for this project
 
 noise_arr = [0, 10, 20, 30, 40, 50]

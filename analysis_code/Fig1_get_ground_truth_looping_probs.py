@@ -5,12 +5,13 @@ from tqdm.auto import tqdm
 
 import sys
 from pathlib import Path
-sys.path.append('../')
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # repository root
 from utils import *  # key functions for this project
+from paths import ANALYSIS_DATA_FOLDER  # data locations; see paths.py
 
 THRESHOLD = 50
 
-loop_nums = np.array([0, 1, 2, 3, 4, 5, 6, 7, 8])
+loop_nums = np.array([0, 1, 2, 3, 4, 5])
 looping_probs = pd.Series(index=loop_nums, dtype='float', name='looping_prob')
 looping_probs.index.name = 'loop_num'
 n_reps = 19 - 10 + 1  # 10..19 inclusive
@@ -41,19 +42,4 @@ with tqdm(total=total_iters, desc="looping probabilities (EP)", unit="rep") as p
         
         looping_probs.loc[loop_num] = looping_prob_this_loop
 
-## -- random loops: prob. under 50nm --
-
-loop_nums_random = np.array([6, 7, 8])
-total_iters = len(loop_nums_random) * n_reps
-
-print('Working on random loops')
-with tqdm(total=total_iters, desc="looping probabilities (random)", unit="rep") as pbar:
-    for loop_num in loop_nums_random:
-        
-        prob_under_threshold = prob_under_threshold_all_reps(loop_num, noise=0, threshold=THRESHOLD, pbar=pbar)
-        
-        looping_prob_this_loop = prob_under_threshold
-        
-        looping_probs.loc[loop_num] = looping_prob_this_loop
-        
-looping_probs.to_csv('/mnt/md1/jjusuf/looping_review/analysis_data/looping_probs.csv', float_format="%.6f")
+looping_probs.to_csv(ANALYSIS_DATA_FOLDER / 'looping_probs.csv', float_format="%.6f")

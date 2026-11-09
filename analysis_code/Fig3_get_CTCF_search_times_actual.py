@@ -6,8 +6,9 @@ import pickle
 
 import sys
 from pathlib import Path
-sys.path.append('../')
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # repository root
 from utils import *  # key functions for this project
+from paths import ANALYSIS_DATA_FOLDER  # data locations; see paths.py
 
 THRESHOLD = 50
 
@@ -31,4 +32,4 @@ with tqdm(total=total_iters, desc="calculating search times", unit="rep") as pba
             )
 
 search_times_CTCF = pd.DataFrame(rows_CTCF)
-search_times_CTCF.to_csv(f'/mnt/md1/jjusuf/looping_review/analysis_data/search_times_CTCF_actual.csv', index=False, float_format="%.2f")
+search_times_CTCF.to_csv(ANALYSIS_DATA_FOLDER / f'search_times_CTCF_actual.csv', index=False, float_format="%.2f")

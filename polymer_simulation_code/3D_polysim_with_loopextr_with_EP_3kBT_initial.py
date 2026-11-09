@@ -43,7 +43,6 @@ from scipy.sparse import coo_matrix
 from scipy.ndimage.filters import gaussian_filter1d
 from scipy.stats import expon
 
-from datetime import datetime
 
 from polychrom.hdf5_format import HDF5Reporter, list_URIs, load_URI, load_hdf5_file
 import h5py as hp
@@ -53,6 +52,10 @@ from collections.abc import Iterable
 
 import openmm
 import simtk.unit
+
+# data locations; see paths.py in the repository root
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from paths import SIM_RAW_FOLDER
 
 
 logging.basicConfig(level=logging.INFO)
@@ -626,8 +629,7 @@ pause_prob = 1-0.0025  # resulting in 125 bp/s unidirectional extrusion speed
 # parameters for SMC translocator
 translocator_initialization_steps = 10000 # for SMC translocator
 
-date = datetime.today().strftime('%Y%m%d')
-save_folder = f'/mnt/md1/jjusuf/looping_review/simulation_data_raw/sim_{date}_with_LE_with_EP_initial_save_every_1min'
+save_folder = f'{SIM_RAW_FOLDER}/sim_with_LE_with_EP_initial_save_every_1min'
 name_format_string = save_folder+'/sim_tests_proc{}_sep{}_lp{}_H{}_boundaryPauseProb{}_ctcf{}_longlivedfraction{}_longlivedfactor{}_dsb{}_superloading{}_nreps{}'
 
 lof_nums = list(product(llp,boundaryPauseProb,processivities,separations,[''],h,ctcf_boost_factors,longlived_fraction,longlived_boost_factor,dsb_boost_factor,targeted_loading_factor))

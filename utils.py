@@ -4,7 +4,9 @@ import os
 from functools import lru_cache
 from tqdm.auto import tqdm
 
-DATA_FOLDER = "/mnt/md1/jjusuf/looping_review/simulation_data_processed"
+from paths import SIM_PROCESSED_FOLDER, ANALYSIS_DATA_FOLDER  # data locations; see paths.py
+
+DATA_FOLDER = SIM_PROCESSED_FOLDER
 
 DELTA_T = 0.02
 
@@ -16,12 +18,12 @@ def _load_mat_array(loop_num: int, rep: int, noise: int, non_sticky: bool=False)
     if non_sticky:
         mat_path = os.path.join(
             DATA_FOLDER,
-            f"loop_{loop_num}_non_sticky_{rep}_step_1_noise_{noise}um.txt",
+            f"loop_{loop_num}_non_sticky_{rep}_step_1_noise_{noise}nm.txt",
         )
     else:
         mat_path = os.path.join(
             DATA_FOLDER,
-            f"loop_{loop_num}_{rep}_step_1_noise_{noise}um.txt",
+            f"loop_{loop_num}_{rep}_step_1_noise_{noise}nm.txt",
         )
 
     mat = np.loadtxt(mat_path)
@@ -154,7 +156,7 @@ def event_lifetimes(
         return pd.Series(dtype=float, name="lifetime")
 
     # Binary track in frames
-    binary_track = state.astype(int).to_numpy()
+    binary_track = state.astype(int).to_numpy(copy=True)  # copy: pandas >= 3 returns a read-only view
 
     # ---- First pass: find starts/ends ----
     # starts[i] is the first frame of event i, ends[i] is the frame after its last frame

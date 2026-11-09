@@ -6,8 +6,9 @@ import pickle
 
 import sys
 from pathlib import Path
-sys.path.append('../')
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # repository root
 from utils import *  # key functions for this project
+from paths import ANALYSIS_DATA_FOLDER  # data locations; see paths.py
 
 THRESHOLD = 50
 
@@ -39,4 +40,4 @@ for dt in dt_arr:
                     )
 
     search_times_EP = pd.DataFrame(rows_EP)
-    search_times_EP.to_csv(f'/mnt/md1/jjusuf/looping_review/analysis_data/search_times_EP_deltaT_{dt}s.csv', index=False, float_format="%.2f")
+    search_times_EP.to_csv(ANALYSIS_DATA_FOLDER / f'search_times_EP_deltaT_{dt}s.csv', index=False, float_format="%.2f")

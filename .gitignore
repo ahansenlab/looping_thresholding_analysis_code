@@ -2,3 +2,6 @@ __pycache__/
 *.py[codz]
 *$py.class
 .ipynb_checkpoints
+
+# data folder (or symlink to it), archived separately on Zenodo -- see paths.py
+/data

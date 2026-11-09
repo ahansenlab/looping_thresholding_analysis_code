@@ -4,8 +4,9 @@ from tqdm.auto import tqdm
 
 import sys
 from pathlib import Path
-sys.path.append('../')
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # repository root
 from utils import *  # key functions for this project
+from paths import ANALYSIS_DATA_FOLDER  # data locations; see paths.py
 
 THRESHOLD = 200
 
@@ -46,4 +47,4 @@ with tqdm(total=total_iters, desc="calculating times below threshold", unit="rep
 
 under_threshold_times_df = pd.DataFrame(rows)
 
-under_threshold_times_df.to_csv(f'/mnt/md1/jjusuf/looping_review/analysis_data/all_loops_under_threshold_times_spatiotemporal.csv', index=False, float_format="%.2f")
+under_threshold_times_df.to_csv(ANALYSIS_DATA_FOLDER / f'all_loops_under_threshold_times_spatiotemporal.csv', index=False, float_format="%.2f")

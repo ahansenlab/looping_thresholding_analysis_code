@@ -3,15 +3,18 @@ import pandas as pd
 from polychrom.hdf5_format import list_URIs, load_URI
 from tqdm import tqdm
 import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # repository root
+from paths import SIM_RAW_FOLDER, SIM_PROCESSED_FOLDER, LOOP_INFO_FILE  # data locations; see paths.py
 
 loop_name = sys.argv[1]
 block_start = int(sys.argv[2]) # 1000000
 block_end = int(sys.argv[3]) # 4000000
 block_step = int(sys.argv[4]) # 50
 
-sim_calib_curve_data_subset = pd.read_csv('/mnt/md0/jjusuf/looping_review/loop_info.csv', index_col=0)
+sim_calib_curve_data_subset = pd.read_csv(LOOP_INFO_FILE, index_col=0)
 
-files = list_URIs('/mnt/md1/jjusuf/looping_review/sim_data/sim_20260115_with_LE_with_EP_main_save_every_block/')
+files = list_URIs(str(SIM_RAW_FOLDER / 'sim_with_LE_with_EP_main_save_every_block'))
 
 chrom_size = 70000
 region_size = 2000
@@ -22,7 +25,7 @@ CTCF_sites_L = np.array([574, 694, 866, 1241, 1390, 1580, 1752, 1800])
 CTCF_sites_R = np.array([200, 330, 724, 1425, 1433, 1604])
 sticky_elements = np.array([250, 372, 540, 745, 775, 833, 961, 1202, 1330, 1640, 1722])
 
-random_elements = np.array([102, 421, 450, 499, 1050, 1902])
+random_elements = np.array([102, 421, 450, 499, 1050, 1902])  # not used for analysis
 sites_of_interest_in_region = np.concatenate((CTCF_sites_L, CTCF_sites_R, sticky_elements, random_elements))
 sites_of_interest = np.repeat(region_starts,len(sites_of_interest_in_region)) + np.tile(sites_of_interest_in_region, num_regions)
 
@@ -71,7 +74,7 @@ right_indices = [lookup[r] for r in right_ids]
 # ---- Open all output files once ----
 outfiles = []
 for r in repeat_nums:
-    fname = f"/mnt/md1/jjusuf/looping_review/simulation_data_processed/{loop_name}_{r}_step_{block_step}.txt"
+    fname = SIM_PROCESSED_FOLDER / f"{loop_name}_{r}_step_{block_step}.txt"
     outfiles.append(open(fname, "w"))
 
 # ---- Main streaming loop ----

@@ -6,14 +6,15 @@ import pickle
 
 import sys
 from pathlib import Path
-sys.path.append('../')
+sys.path.append(str(Path(__file__).resolve().parents[1]))  # repository root
 from utils import *  # key functions for this project
+from paths import ANALYSIS_DATA_FOLDER  # data locations; see paths.py
 
 THRESHOLD = 50
 
 # get these tables from earlier
-t_under_50nm_EP = pd.read_csv(f'/mnt/md1/jjusuf/looping_review/analysis_data/EP_loops_under_threshold_times_50nm.csv')
-t_under_50nm_EP_ns = pd.read_csv(f'/mnt/md1/jjusuf/looping_review/analysis_data/EP_loops_non_sticky_under_threshold_times_50nm.csv')
+t_under_50nm_EP = pd.read_csv(ANALYSIS_DATA_FOLDER / f'EP_loops_under_threshold_times_50nm.csv')
+t_under_50nm_EP_ns = pd.read_csv(ANALYSIS_DATA_FOLDER / f'EP_loops_non_sticky_under_threshold_times_50nm.csv')
 
 loop_num_arr = np.array([3, 4, 5])
 
@@ -33,4 +34,4 @@ for loop_num in loop_num_arr:
     # save results
     EP_loops_lifetime_histograms.loc[loop_num] = bin_edges, hist, hist_ns, hist_diff, mean
 
-EP_loops_lifetime_histograms.to_pickle('/mnt/md1/jjusuf/looping_review/analysis_data/EP_loops_lifetime_histograms.pkl')
+EP_loops_lifetime_histograms.to_pickle(ANALYSIS_DATA_FOLDER / 'EP_loops_lifetime_histograms.pkl')

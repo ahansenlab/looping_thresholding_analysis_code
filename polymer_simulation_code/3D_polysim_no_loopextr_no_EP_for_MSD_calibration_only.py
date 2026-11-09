@@ -10,7 +10,10 @@ import openmm
 import os
 from polychrom.hdf5_format import HDF5Reporter
 import numpy as np
-from datetime import datetime
+
+# data locations; see paths.py in the repository root
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from paths import SIM_RAW_FOLDER
 
 gpu = '0'
 
@@ -30,8 +33,7 @@ monomer_types = np.zeros(N, dtype='int')
 
 polymer = starting_conformations.grow_cubic(N, l)
 
-date = datetime.today().strftime('%Y%m%d')
-folder_name = f'/mnt/md1/jjusuf/looping_review/simulation_data_raw/sim_20260113_no_LE_no_EP'
+folder_name = f'{SIM_RAW_FOLDER}/sim_no_LE_no_EP'
 
 reporter = HDF5Reporter(folder=folder_name, max_data_length=500, overwrite=True)
 sim = simulation.Simulation(
