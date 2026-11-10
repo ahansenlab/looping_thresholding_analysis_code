@@ -46,7 +46,7 @@ The scripts to generate Figures 4 and 5 are contained in `stats_code_matlab`.
 
 ## Data
 
-The following large data folders/files can be downloaded from Zenodo (DOI: TO DO):
+The following large data folders/files can be downloaded from our [Zenodo repository](https://zenodo.org/records/24096051):
 
 * `simulation_data_raw/`
 * `simulation_data_processed/`
