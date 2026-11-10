@@ -41,7 +41,7 @@ All scripts and notebooks for these figures are written in Python.
 The scripts to generate Figures 4 and 5 are contained in `stats_code_matlab`. 
 
 * `PlotThresholdingMetrics.m` was used to generate Figure 4
-* `RunBayesianThresholding.m` was used to generate Figure 5. In this script, we simulated a pair of monomers with a separation of $\Delta S=16$ on a Rouse chain with $D=291$ nm<sup>2</sup>/s and $\kappa=1/17$ s<sup>-1</sup>, and obtained noisy samples with $\sigma = 20$ nm per coordinate at intervals of $\Delta t = 12$ s. These parameters were chosen according to [Gabriele et al. 2022](https://www.science.org/doi/10.1126/science.abn6583) (see its Supplementary Information for more details). Bayesian reconstruction was performed as described in the main text for 1000 trajectories.
+* `RunBayesianThresholding.m` was used to generate Figure 5. In this script, we simulated a pair of monomers with a separation of $\Delta S=16$ on a Rouse chain with $D=291$ nm<sup>2</sup>/s and $\kappa=1/17$ s<sup>-1</sup>, and generated noisy trajectories with $\sigma = 20$ nm per coordinate at intervals of $\Delta t = 12$ s. These parameters were chosen according to [Gabriele et al. 2022](https://www.science.org/doi/10.1126/science.abn6583) (see its Supplementary Information for more details). Bayesian reconstruction was performed as described in the main text for 1000 trajectories.
 
 
 ## Data
